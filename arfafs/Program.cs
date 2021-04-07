@@ -18,16 +18,15 @@ namespace arfafs
             var inFile = filename;
             cmdarg.assert(!File.Exists(inFile), $"Halt: {inFile} doesn't exist.");
 
-
             var fileStream = File.OpenRead(inFile);
             var fileReader = new BinaryReader(fileStream);
             var afsData = AFSFile.load(fileReader);
 
             var scene = afsData.sections[0];
 
-
-            var wl = new JSRSceneBin(scene);
+            var wl = new JSRDemoBin(scene);
             wl.parse();
+            Console.ReadLine();
 
 
 
@@ -74,21 +73,7 @@ namespace arfafs
 
         static void Main(string[] args)
         {
-            /*
-            args = new string[] {
-                "demo04.afs",
-                "out1",
-            };
-            cmdarg.cmdargs = args;
-
-            var inFile = cmdarg.assertArg(0, "AFS File");
-            var outFolder = cmdarg.assertArg(1, "Out Folder");
-            */
-
-            for (int i=2; i < 3; i++)
-            {
-                runTest($"DEMO0{i}.afs");
-            }
+            runTest("DEMO02.afs");
 
             Console.ReadLine();
 

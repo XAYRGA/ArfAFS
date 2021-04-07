@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="afs.cs" />
     <Compile Include="cmdarg.cs" />
+    <Compile Include="JSRDemoBin.cs" />
     <Compile Include="JSRSceneBin.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
