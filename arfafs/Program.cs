@@ -19,9 +19,7 @@ namespace arfafs
             var outFolder = cmdarg.tryArg(1, "Output Folder");
 
             if (outFolder==null)
-            {
                 outFolder = $"AFS_{Path.GetFileName(inAfs)}";
-            }
 
 
             bool force_numeric_output = cmdarg.findDynamicFlagArgument("--ignore-filename");

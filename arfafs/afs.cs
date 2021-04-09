@@ -88,11 +88,28 @@ namespace arfafs
         public uint un5;
         public uint length;
 
+        private static string readArchiveName(BinaryReader aafRead)
+        {
+            var ofs = aafRead.BaseStream.Position; // Store where we started 
+            byte nextbyte; // Blank byte
+            byte[] name = new byte[0x20]; // Array for the name
+
+            int count = 0; // How many we've done
+            while ((nextbyte = aafRead.ReadByte()) != 0xFF & nextbyte != 0x00) // Read until we've read 0 or FF
+            {
+                name[count] = nextbyte; // Store into byte array
+                count++; // Count  how many valid bytes  we've read.
+            }
+            aafRead.BaseStream.Seek(ofs + 0x20, SeekOrigin.Begin); // Seek 0x70 bytes, because thats the statically allocated space for the wavegroup path. 
+            return Encoding.ASCII.GetString(name, 0, count); // Return a string with the name, but only of the valid bytes we've read. 
+        }
+
+
         public static AFSSectionDescriptor load(BinaryReader reader)
         {
             var afsd = new AFSSectionDescriptor()
             {
-                name = Encoding.ASCII.GetString(reader.ReadBytes(32)),
+                name = readArchiveName(reader),
                 un2 = reader.ReadInt32(),
                 un3 = reader.ReadUInt16(),
                 un4 = reader.ReadUInt16(),
