@@ -46,11 +46,13 @@ namespace arfafs
             reader.BaseStream.Position = AFS.sections[0].offset - 0x10;
             reader.ReadUInt64();
             var filetable_offset = reader.ReadUInt32();
-           // Console.WriteLine($"{filetable_offset:X}");
-            reader.BaseStream.Position = filetable_offset;
-
-            for (int i = 0; i < AFS.sectionCount; i++)
-                AFS.sections[i].descriptor = AFSSectionDescriptor.load(reader);
+            // Console.WriteLine($"{filetable_offset:X}");
+            if (filetable_offset != 0)
+            {
+                reader.BaseStream.Position = filetable_offset;
+                for (int i = 0; i < AFS.sectionCount; i++)
+                    AFS.sections[i].descriptor = AFSSectionDescriptor.load(reader);
+            }
 
             return AFS;
         }

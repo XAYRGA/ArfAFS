@@ -11,73 +11,51 @@ namespace arfafs
     class Program
     {
 
-        static void runTest(string filename)
-        {
-
-            Console.WriteLine($"Unit test for {filename}");
-            var inFile = filename;
-            cmdarg.assert(!File.Exists(inFile), $"Halt: {inFile} doesn't exist.");
-
-            var fileStream = File.OpenRead(inFile);
-            var fileReader = new BinaryReader(fileStream);
-            var afsData = AFSFile.load(fileReader);
-
-            var scene = afsData.sections[0];
-
-            var wl = new JSRDemoBin(scene);
-            wl.parse();
-            Console.ReadLine();
-
-
-
-
-            /*
-             * 
-             * 
-             * 
-            // Scene Parse
-            var sceneSectData = afsData.sections[0].data;
-            var sceneSectReader = new MemoryStream(sceneSectData);
-            var sceneSect = new BinaryReader(sceneSectReader);
-
-            var scenePointers = new Stack<uint>();
-            uint b = 0;
-            uint largestPointer = 0;
-            uint smallestPointer = 0xFFFFFFFF; 
-
-            while (((b = sceneSect.ReadUInt32()) & 0x8C000000) == 0x8C000000)// bruh 
-            {
-                if (!((b & 0x8C000000) == 0x8C000000))
-                    break;
-                if (b > 0x8CFFFFFF)
-                    break;
-                scenePointers.Push(b);
-                if (b > largestPointer)
-                    largestPointer = b;
-                if (b < smallestPointer)
-                    smallestPointer = b;
-
-            }
-            // UNWRAP STACK HERE 
-            var sections = new uint[scenePointers.Count];
-            for (int i = scenePointers.Count - 1; i >= 0; i--)
-                sections[i] = scenePointers.Pop();
-            //
-
-            Console.WriteLine();
-            Console.WriteLine($"Offset high = 0x{largestPointer:X}, low = {smallestPointer:X}");
-            Console.WriteLine($"Virtual allocation address = 0x8c800000");
-            */
-
-        }
-
         static void Main(string[] args)
         {
-            runTest("DEMO02.afs");
+            cmdarg.cmdargs = args;
 
-            Console.ReadLine();
+            var inAfs = cmdarg.assertArg(0, "AFS File");
+            var outFolder = cmdarg.tryArg(1, "Output Folder");
+
+            if (outFolder==null)
+            {
+                outFolder = $"AFS_{Path.GetFileName(inAfs)}";
+            }
 
 
+            bool force_numeric_output = cmdarg.findDynamicFlagArgument("--ignore-filename");
+            bool filenumbers = cmdarg.findDynamicFlagArgument("--nopadname");
+            cmdarg.assert(!File.Exists(inAfs), $"'{inAfs}' does not exist.");
+
+            if (!Directory.Exists(outFolder))
+                Directory.CreateDirectory(outFolder);
+
+            AFSFile dataFile = null;
+            FileStream fdata = null;
+
+            try
+            {
+                fdata = File.OpenRead(inAfs);
+            }
+            catch (Exception E)
+            {
+                cmdarg.assert($"Failed to open '{inAfs}': '{E.Message}'");
+            }
+
+            try
+            {
+                dataFile = AFSFile.load(new BinaryReader(fdata));
+            }
+            catch (Exception E) { cmdarg.assert($"Failed decode AFS '{inAfs}': '{E.Message}'"); }
+
+            for (int i = 0; i < dataFile.sectionCount; i++)
+                if (dataFile.sections[i].descriptor != null && !force_numeric_output)
+                    File.WriteAllBytes($"{outFolder}/{dataFile.sections[i].descriptor.name}", dataFile.sections[i].data);
+                else if (!filenumbers)
+                    File.WriteAllBytes($"{outFolder}/{i:D4}.dat", dataFile.sections[i].data);
+                else
+                    File.WriteAllBytes($"{outFolder}/{i}.dat", dataFile.sections[i].data);
         }
     }
 }
